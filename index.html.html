@@ -1,0 +1,1018 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AIカウンセリング ロールプレイ練習ツール</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Hiragino Kaku Gothic ProN', 'Noto Sans JP', sans-serif; background: #FAF8FB; color: #3A3A3A; min-height: 100vh; }
+
+/* カラー変数 */
+:root {
+  --rose: #C9A0A0; --rose-l: #F5E6E8; --rose-d: #A07878;
+  --mauve: #B8A8B8; --mauve-l: #E8E0EC; --mauve-d: #7A6A7A;
+  --sage: #A8B8A0; --sage-l: #E8F0E8; --sage-d: #6A8A62;
+  --lav: #E8E0EC; --deep: #7A6A7A; --charcoal: #3A3A3A;
+  --bg: #FAF8FB; --white: #FFFFFF;
+  --amber: #D4A040; --amber-l: #FFF4E0;
+}
+
+/* ヘッダー */
+.header { background: var(--deep); padding: 16px 18px 0; }
+.header-top { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+.header-title { color: #fff; font-weight: 700; font-size: 15px; }
+.header-sub { color: var(--mauve-l); font-size: 11px; margin-top: 2px; }
+
+/* ナビ */
+.nav { display: flex; }
+.nav-btn { flex: 1; padding: 11px 0 9px; border: none; background: var(--deep); color: rgba(255,255,255,0.5); cursor: pointer; font-size: 10px; font-weight: 700; display: flex; flex-direction: column; align-items: center; gap: 2px; border-bottom: 2px solid transparent; transition: all 0.15s; font-family: inherit; }
+.nav-btn.active { background: rgba(255,255,255,0.12); color: #fff; border-bottom-color: var(--rose); }
+.nav-icon { font-size: 16px; }
+
+/* コンテナ */
+.container { max-width: 680px; margin: 0 auto; padding: 16px 14px; }
+
+/* ボタン */
+.btn { padding: 9px 16px; border-radius: 10px; font-weight: 700; font-size: 13px; cursor: pointer; font-family: inherit; transition: all 0.15s; }
+.btn-primary { background: var(--deep); color: #fff; border: none; }
+.btn-primary:hover { opacity: 0.85; }
+.btn-primary:disabled { background: var(--mauve); cursor: default; }
+.btn-outline { background: #fff; color: var(--deep); border: 2px solid var(--deep); }
+.btn-rose { background: var(--rose); color: #fff; border: none; }
+.btn-full { width: 100%; padding: 10px; }
+
+/* Tier切替 */
+.tier-switch { display: flex; gap: 8px; margin-bottom: 14px; }
+.tier-btn { flex: 1; padding: 9px; border-radius: 10px; font-weight: 700; font-size: 13px; cursor: pointer; font-family: inherit; border: 2px solid var(--mauve-l); background: #fff; color: var(--deep); transition: all 0.15s; }
+.tier-btn.active { background: var(--deep); color: #fff; border-color: var(--deep); }
+
+/* APIキー設定ボックス */
+.api-box { background: #fff; border-radius: 14px; padding: 16px; border: 1.5px solid var(--mauve-l); margin-bottom: 14px; }
+.api-box-title { font-weight: 700; font-size: 13px; color: var(--deep); margin-bottom: 10px; }
+.api-steps { font-size: 12px; color: #555; line-height: 2; margin-bottom: 12px; }
+.api-steps a { color: var(--mauve-d); }
+.api-input-row { display: flex; gap: 8px; }
+.api-input { flex: 1; padding: 9px 12px; border-radius: 9px; border: 1.5px solid var(--mauve-l); font-size: 13px; font-family: inherit; outline: none; color: var(--charcoal); }
+.api-saved { background: var(--sage-l); border-radius: 9px; padding: 8px 12px; font-size: 12px; color: var(--sage-d); font-weight: 700; margin-top: 8px; display: none; }
+.api-saved.show { display: block; }
+
+/* チャレンジ */
+.challenge-box { background: var(--amber-l); border-radius: 12px; padding: 12px 14px; margin-bottom: 14px; border: 1px solid var(--amber); }
+.challenge-title { font-weight: 700; font-size: 12px; color: var(--amber); margin-bottom: 7px; }
+.challenge-tags { display: flex; gap: 6px; flex-wrap: wrap; }
+.challenge-tag { padding: 4px 10px; border-radius: 20px; border: 1.5px solid var(--mauve-l); background: #fff; color: var(--charcoal); font-size: 11px; font-weight: 600; cursor: pointer; font-family: inherit; transition: all 0.15s; }
+.challenge-tag.active { background: var(--amber); color: #fff; border-color: var(--amber); }
+.challenge-desc { font-size: 11px; color: var(--charcoal); margin-top: 7px; line-height: 1.7; display: none; }
+.challenge-desc.show { display: block; }
+
+/* ケースカード */
+.case-list-title { font-size: 12px; color: var(--deep); font-weight: 700; margin-bottom: 10px; }
+.case-card { background: #fff; border-radius: 14px; padding: 14px 16px; margin-bottom: 10px; border: 1.5px solid var(--mauve-l); cursor: pointer; transition: border-color 0.15s; }
+.case-card:hover { border-color: var(--rose); }
+.case-card-top { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
+.case-emoji { font-size: 24px; }
+.case-info { flex: 1; }
+.case-name { font-weight: 700; font-size: 14px; }
+.case-label { font-size: 11px; color: var(--mauve); margin-top: 1px; }
+.case-badge { font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 20px; }
+.badge-tier1 { background: var(--sage-l); color: var(--sage-d); }
+.badge-tier2 { background: var(--amber-l); color: var(--amber); }
+.case-desc { font-size: 12px; color: #666; line-height: 1.6; margin-bottom: 7px; }
+.emotion-tags { display: flex; gap: 5px; flex-wrap: wrap; }
+.emotion-tag { background: var(--lav); color: var(--deep); font-size: 10px; padding: 2px 7px; border-radius: 20px; }
+
+/* 使い方ボックス */
+.howto { background: var(--mauve-l); border-radius: 12px; padding: 12px 14px; margin-top: 4px; }
+.howto-title { font-weight: 700; font-size: 12px; color: var(--deep); margin-bottom: 5px; }
+.howto-body { font-size: 11px; color: var(--charcoal); line-height: 1.9; }
+
+/* ── セッション画面 ── */
+#session-screen { height: 100vh; display: flex; flex-direction: column; background: var(--bg); }
+.session-header { background: var(--deep); padding: 10px 14px; display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+.back-btn { background: none; border: none; color: #fff; cursor: pointer; font-size: 18px; padding: 0 4px; line-height: 1; }
+.session-case-emoji { font-size: 20px; }
+.session-case-info { flex: 1; }
+.session-case-name { color: #fff; font-weight: 700; font-size: 13px; }
+.session-case-label { color: var(--mauve-l); font-size: 10px; }
+.session-turns { color: var(--mauve-l); font-size: 11px; }
+
+.emotion-bar { background: #fff; border-bottom: 1px solid var(--mauve-l); padding: 6px 14px; display: flex; align-items: center; gap: 5px; flex-shrink: 0; flex-wrap: wrap; }
+.emotion-bar-label { font-size: 10px; color: var(--mauve); font-weight: 600; white-space: nowrap; }
+.emotion-pill { font-size: 10px; padding: 1px 7px; border-radius: 20px; background: var(--lav); color: var(--deep); transition: all 0.4s; }
+.emotion-pill.active { background: var(--rose); color: #fff; font-weight: 700; }
+
+.messages { flex: 1; overflow-y: auto; padding: 12px 14px; display: flex; flex-direction: column; gap: 10px; }
+.msg-row { display: flex; align-items: flex-end; gap: 6px; }
+.msg-row.user { justify-content: flex-end; }
+.msg-avatar { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; flex-shrink: 0; }
+.avatar-client { background: var(--rose); }
+.avatar-user { background: var(--sage); color: #fff; font-weight: 700; font-size: 11px; }
+.msg-bubble { max-width: 76%; padding: 9px 13px; font-size: 13px; line-height: 1.7; box-shadow: 0 1px 4px rgba(0,0,0,0.05); }
+.bubble-client { border-radius: 16px 16px 16px 3px; background: #fff; color: var(--charcoal); border: 1px solid var(--mauve-l); }
+.bubble-user { border-radius: 16px 16px 3px 16px; background: var(--deep); color: #fff; }
+.bubble-label { font-size: 9px; color: rgba(255,255,255,0.5); margin-bottom: 2px; }
+.typing { background: #fff; border: 1px solid var(--mauve-l); border-radius: 16px 16px 16px 3px; padding: 10px 14px; }
+.dot { display: inline-block; width: 5px; height: 5px; border-radius: 50%; background: var(--mauve); margin: 0 2px; animation: bounce 1s infinite; }
+.dot:nth-child(2) { animation-delay: 0.2s; }
+.dot:nth-child(3) { animation-delay: 0.4s; }
+@keyframes bounce { 0%,100%{transform:translateY(0);opacity:.4} 50%{transform:translateY(-4px);opacity:1} }
+
+.feedback-bar { padding: 6px 14px 0; flex-shrink: 0; }
+.input-area { padding: 8px 14px 14px; background: #fff; border-top: 1px solid var(--mauve-l); flex-shrink: 0; }
+.input-row { display: flex; gap: 6px; }
+.msg-input { flex: 1; padding: 9px 11px; border-radius: 10px; border: 1.5px solid var(--mauve-l); font-size: 13px; line-height: 1.6; resize: none; height: 50px; font-family: inherit; outline: none; color: var(--charcoal); }
+.send-btn { width: 46px; height: 50px; border-radius: 10px; border: none; background: var(--deep); color: #fff; font-size: 17px; cursor: pointer; transition: background 0.15s; }
+.send-btn:disabled { background: var(--mauve); cursor: default; }
+.input-hint { font-size: 10px; color: var(--mauve); margin-top: 4px; text-align: center; }
+
+/* ── フィードバック画面 ── */
+.result-header { background: var(--deep); padding: 12px 16px; display: flex; align-items: center; gap: 8px; }
+.result-title { color: #fff; font-weight: 700; font-size: 14px; }
+.result-sub { color: var(--mauve-l); font-size: 10px; }
+
+.score-main { background: #fff; border-radius: 16px; padding: 18px; margin-bottom: 12px; text-align: center; border: 1.5px solid var(--mauve-l); box-shadow: 0 2px 12px rgba(122,106,122,0.08); }
+.score-row { display: flex; align-items: center; justify-content: center; gap: 16px; }
+.grade-num { font-size: 50px; font-weight: 900; line-height: 1; }
+.grade-label { font-size: 10px; color: var(--mauve); margin-top: 2px; }
+.divider-v { width: 1px; height: 56px; background: var(--mauve-l); }
+.total-num { font-size: 38px; font-weight: 900; color: var(--deep); line-height: 1; }
+.total-label { font-size: 10px; color: var(--mauve); margin-top: 2px; }
+.progress-bar-wrap { height: 7px; border-radius: 4px; background: var(--lav); margin: 14px 0 12px; overflow: hidden; }
+.progress-bar { height: 100%; border-radius: 4px; transition: width 1s; }
+.overall-comment { font-size: 13px; color: var(--charcoal); line-height: 1.8; }
+
+.score-table { background: #fff; border-radius: 14px; border: 1.5px solid var(--mauve-l); overflow: hidden; margin-bottom: 12px; }
+.score-table-header { background: var(--deep); padding: 9px 15px; color: #fff; font-weight: 700; font-size: 13px; }
+.score-row-item { padding: 11px 15px; border-bottom: 1px solid var(--mauve-l); }
+.score-row-item:last-child { border-bottom: none; }
+.score-item-top { display: flex; justify-content: space-between; margin-bottom: 3px; }
+.score-item-name { font-weight: 700; font-size: 12px; }
+.score-item-num { font-weight: 700; font-size: 13px; }
+.score-item-bar { height: 4px; border-radius: 2px; background: var(--lav); margin-bottom: 5px; overflow: hidden; }
+.score-item-bar-fill { height: 100%; border-radius: 2px; }
+.score-item-comment { font-size: 11px; color: #666; line-height: 1.6; }
+
+.feedback-box { border-radius: 12px; padding: 13px; margin-bottom: 10px; }
+.fb-green { background: var(--sage-l); border: 1px solid var(--sage); }
+.fb-rose { background: var(--rose-l); border: 1px solid var(--rose); }
+.fb-amber { background: var(--amber-l); border: 1px solid var(--amber); }
+.fb-mauve { background: var(--mauve-l); border: 1px solid var(--mauve); }
+.fb-title { font-weight: 700; font-size: 12px; margin-bottom: 7px; }
+.fb-item { margin-bottom: 7px; }
+.fb-item-title { font-weight: 700; font-size: 12px; }
+.fb-item-body { font-size: 12px; line-height: 1.7; margin-top: 2px; }
+.fb-body { font-size: 12px; line-height: 1.7; }
+
+.result-btns { display: flex; gap: 8px; margin-top: 14px; }
+
+/* ── ケース管理 ── */
+.case-manage-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+.case-manage-title { color: #fff; font-weight: 700; font-size: 14px; }
+.case-item { background: #fff; border-radius: 13px; padding: 12px 14px; margin-bottom: 8px; border: 1.5px solid var(--mauve-l); display: flex; align-items: center; gap: 10px; }
+.case-item-emoji { font-size: 22px; }
+.case-item-info { flex: 1; min-width: 0; }
+.case-item-name { font-weight: 700; font-size: 13px; }
+.case-item-label { font-size: 11px; color: var(--mauve); }
+.case-item-desc { font-size: 11px; color: #888; margin-top: 1px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.case-item-btns { display: flex; gap: 5px; flex-shrink: 0; }
+.btn-sm { padding: 5px 9px; border-radius: 7px; font-size: 11px; font-weight: 700; cursor: pointer; font-family: inherit; }
+.btn-play { background: var(--sage-l); color: var(--sage-d); border: none; }
+.btn-edit { background: #fff; color: var(--deep); border: 1.5px solid var(--mauve-l); }
+.btn-del { background: var(--rose-l); color: var(--rose-d); border: 1.5px solid var(--rose-l); }
+
+/* ── モーダル ── */
+.modal-overlay { position: fixed; inset: 0; background: rgba(58,58,58,0.6); z-index: 100; display: flex; align-items: center; justify-content: center; padding: 16px; }
+.modal { background: #fff; border-radius: 18px; width: 100%; max-width: 560px; max-height: 90vh; overflow-y: auto; box-shadow: 0 8px 40px rgba(122,106,122,0.25); }
+.modal-header { background: var(--deep); border-radius: 18px 18px 0 0; padding: 14px 18px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; }
+.modal-title { color: #fff; font-weight: 700; font-size: 14px; }
+.modal-close { background: none; border: none; color: #fff; font-size: 22px; cursor: pointer; line-height: 1; }
+.modal-body { padding: 18px; }
+.form-label { display: block; font-size: 12px; font-weight: 700; color: var(--deep); margin-bottom: 4px; margin-top: 12px; }
+.form-input { width: 100%; padding: 9px 11px; border-radius: 9px; border: 1.5px solid var(--mauve-l); font-size: 13px; font-family: inherit; outline: none; color: var(--charcoal); }
+.form-textarea { width: 100%; padding: 9px 11px; border-radius: 9px; border: 1.5px solid var(--mauve-l); font-size: 12px; font-family: monospace; outline: none; color: var(--charcoal); height: 200px; resize: vertical; line-height: 1.7; }
+.emoji-picker { display: flex; gap: 5px; flex-wrap: wrap; margin-bottom: 4px; }
+.emoji-btn { width: 34px; height: 34px; border-radius: 8px; border: 2px solid var(--mauve-l); background: #fff; font-size: 17px; cursor: pointer; transition: all 0.15s; }
+.emoji-btn.active { border-color: var(--deep); background: var(--mauve-l); }
+.modal-btns { display: flex; gap: 8px; margin-top: 16px; }
+.form-note { font-size: 11px; color: var(--mauve); margin-bottom: 5px; }
+
+/* ── 評価基準 ── */
+.rubric-table { background: #fff; border-radius: 14px; border: 1.5px solid var(--mauve-l); overflow: hidden; margin-bottom: 14px; }
+.rubric-header { background: var(--deep); padding: 9px 15px; color: #fff; font-weight: 700; font-size: 13px; }
+.rubric-row { padding: 12px 15px; border-bottom: 1px solid var(--mauve-l); display: flex; gap: 12px; }
+.rubric-row:last-child { border-bottom: none; }
+.rubric-score { width: 48px; flex-shrink: 0; text-align: center; }
+.rubric-score-num { font-weight: 900; font-size: 20px; color: var(--deep); }
+.rubric-score-unit { font-size: 9px; color: var(--mauve); }
+.rubric-name { font-weight: 700; font-size: 13px; color: var(--charcoal); margin-bottom: 3px; }
+.rubric-desc { font-size: 12px; color: #666; line-height: 1.7; }
+.grade-row { padding: 11px 15px; border-bottom: 1px solid var(--mauve-l); display: flex; gap: 12px; align-items: flex-start; }
+.grade-row:last-child { border-bottom: none; }
+.grade-letter { font-weight: 900; font-size: 22px; width: 28px; flex-shrink: 0; }
+.grade-range { font-weight: 700; font-size: 12px; color: var(--charcoal); }
+.grade-note { font-size: 11px; color: #666; line-height: 1.6; margin-top: 1px; }
+
+/* トースト */
+.toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: var(--charcoal); color: #fff; padding: 10px 20px; border-radius: 24px; font-size: 13px; font-weight: 600; z-index: 200; box-shadow: 0 4px 16px rgba(0,0,0,0.2); white-space: nowrap; opacity: 0; transition: opacity 0.3s; pointer-events: none; }
+.toast.show { opacity: 1; }
+
+/* エラー */
+.error-bar { background: #FFF0F0; padding: 8px 14px; font-size: 11px; color: var(--rose-d); border-bottom: 1px solid var(--rose); }
+
+/* 非表示 */
+.hidden { display: none !important; }
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════ ホーム画面 ══════════════════════════════ -->
+<div id="home-screen">
+  <div class="header">
+    <div class="header-top">
+      <span style="font-size:22px">🎭</span>
+      <div>
+        <div class="header-title">AIカウンセリング ロールプレイ</div>
+        <div class="header-sub">心理学講座 実践練習ツール</div>
+      </div>
+    </div>
+    <nav class="nav">
+      <button class="nav-btn active" onclick="showTab('home')"><span class="nav-icon">🎭</span>練習</button>
+      <button class="nav-btn" onclick="showTab('cases')"><span class="nav-icon">📁</span>ケース</button>
+      <button class="nav-btn" onclick="showTab('rubric')"><span class="nav-icon">📋</span>評価基準</button>
+    </nav>
+  </div>
+
+  <!-- ホームコンテンツ -->
+  <div id="tab-home" class="container">
+    <!-- APIキー設定 -->
+    <div class="api-box" style="margin-top:4px;display:none">
+      <div class="api-box-title">🔑 はじめに：無料APIキーの設定</div>
+      <div class="api-steps">
+        1. <a href="https://aistudio.google.com/apikey" target="_blank">aistudio.google.com/apikey</a> を開く（Googleアカウントでログイン）<br>
+        2. 「APIキーを作成」をクリック<br>
+        3. 表示されたキー（AIzaで始まる文字列）を下に貼り付ける
+      </div>
+      <div class="api-input-row">
+        <input type="password" class="api-input" id="api-key-input" placeholder="AIza... ここにAPIキーを貼り付ける">
+        <button class="btn btn-primary" onclick="saveApiKey()">保存</button>
+      </div>
+      <div class="api-saved" id="api-saved-msg">✅ APIキーを保存しました。セッションを開始できます。</div>
+    </div>
+
+    <!-- Tier切替 -->
+    <div class="tier-switch">
+      <button class="tier-btn active" id="tier-btn-1" onclick="setTier('tier1')">🌱 Tier1 基礎課程</button>
+      <button class="tier-btn" id="tier-btn-2" onclick="setTier('tier2')">⚡ Tier2 講師レベル</button>
+    </div>
+
+    <!-- チャレンジ -->
+    <div class="challenge-box">
+      <div class="challenge-title">🏆 チャレンジ課題（任意）</div>
+      <div class="challenge-tags" id="challenge-tags"></div>
+      <div class="challenge-desc" id="challenge-desc"></div>
+    </div>
+
+    <!-- ケース一覧 -->
+    <div class="case-list-title" id="case-list-title">事例を選んでセッション開始</div>
+    <div id="case-list"></div>
+
+    <div class="howto">
+      <div class="howto-title">📋 使い方</div>
+      <div class="howto-body">
+        1. APIキーを設定する（初回のみ）<br>
+        2. （任意）チャレンジ課題を選ぶ<br>
+        3. 事例をタップしてセッション開始<br>
+        4. カウンセラーとして話しかける<br>
+        5. 3ターン以上で採点・フィードバックが受けられる
+      </div>
+    </div>
+  </div>
+
+  <!-- ケース管理タブ -->
+  <div id="tab-cases" class="container hidden">
+    <div class="case-manage-top" style="margin-top:4px">
+      <div style="font-weight:700;font-size:14px;color:var(--deep)">ケース一覧</div>
+      <button class="btn btn-rose" style="padding:6px 14px;border-radius:20px;font-size:12px" onclick="openCaseEditor(null)">＋ 追加</button>
+    </div>
+    <div class="tier-switch">
+      <button class="tier-btn active" id="ctier-btn-1" onclick="setCaseTier('tier1')">🌱 Tier1</button>
+      <button class="tier-btn" id="ctier-btn-2" onclick="setCaseTier('tier2')">⚡ Tier2</button>
+    </div>
+    <div id="case-manage-list"></div>
+  </div>
+
+  <!-- 評価基準タブ -->
+  <div id="tab-rubric" class="container hidden">
+    <div class="tier-switch" style="margin-top:4px">
+      <button class="tier-btn active" id="rtier-btn-1" onclick="setRubricTier('tier1')">🌱 Tier1</button>
+      <button class="tier-btn" id="rtier-btn-2" onclick="setRubricTier('tier2')">⚡ Tier2</button>
+    </div>
+    <div id="rubric-content"></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════ セッション画面 ══════════════════════════════ -->
+<div id="session-screen" class="hidden">
+  <div class="session-header">
+    <button class="back-btn" onclick="goHome()">←</button>
+    <span class="session-case-emoji" id="s-emoji">💼</span>
+    <div class="session-case-info">
+      <div class="session-case-name" id="s-title">ケース名</div>
+      <div class="session-case-label" id="s-label">クライエント情報</div>
+    </div>
+    <div class="session-turns" id="s-turns">0ターン</div>
+  </div>
+  <div class="emotion-bar">
+    <span class="emotion-bar-label">感情:</span>
+    <div id="emotion-pills"></div>
+  </div>
+  <div class="error-bar hidden" id="session-error"></div>
+  <div class="messages" id="messages"></div>
+  <div class="feedback-bar hidden" id="feedback-bar">
+    <button class="btn btn-rose btn-full" id="feedback-btn" onclick="getFeedback()">📊 採点・フィードバックを受ける</button>
+  </div>
+  <div class="input-area">
+    <div class="input-row">
+      <textarea class="msg-input" id="msg-input" placeholder="カウンセラーとして話しかけてみてください…" rows="2" onkeydown="handleKey(event)"></textarea>
+      <button class="send-btn" id="send-btn" onclick="sendMessage()">→</button>
+    </div>
+    <div class="input-hint" id="input-hint">Enter送信 / Shift+Enter改行　• あと3ターンで採点可能</div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════ 結果画面 ══════════════════════════════ -->
+<div id="result-screen" class="hidden">
+  <div class="result-header">
+    <span style="font-size:18px">📊</span>
+    <div>
+      <div class="result-title">採点・フィードバック</div>
+      <div class="result-sub" id="result-sub">ケース名</div>
+    </div>
+  </div>
+  <div class="container" id="result-content"></div>
+</div>
+
+<!-- ══════════════════════════════ ケース編集モーダル ══════════════════════════════ -->
+<div class="modal-overlay hidden" id="case-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="modal-title">新しいケースを追加</div>
+      <button class="modal-close" onclick="closeCaseEditor()">×</button>
+    </div>
+    <div class="modal-body">
+      <label class="form-label">レベル</label>
+      <div class="tier-switch">
+        <button class="tier-btn active" id="mtier-btn-1" onclick="setModalTier('tier1')">🌱 Tier1 基礎</button>
+        <button class="tier-btn" id="mtier-btn-2" onclick="setModalTier('tier2')">⚡ Tier2 応用</button>
+      </div>
+      <label class="form-label">アイコン</label>
+      <div class="emoji-picker" id="emoji-picker"></div>
+      <label class="form-label">ケースタイトル *</label>
+      <input type="text" class="form-input" id="m-title" placeholder="例：職場の人間関係">
+      <label class="form-label">クライエント情報 *</label>
+      <input type="text" class="form-input" id="m-label" placeholder="例：20代女性・会社員">
+      <label class="form-label">ケース概要</label>
+      <input type="text" class="form-input" id="m-description" placeholder="一行で状況を説明">
+      <label class="form-label">感情ラベル（5つ、「、」区切り）</label>
+      <input type="text" class="form-input" id="m-emotions" placeholder="例：緊張、落ち込み、怒り、安心、混乱">
+      <label class="form-label">AIクライエント設定プロンプト *</label>
+      <div class="form-note">【設定】と【演じ方ルール】を含め、「最初の一言は〇〇から始める」で終えると品質が上がります</div>
+      <textarea class="form-textarea" id="m-prompt" placeholder="例：&#10;あなたは心理カウンセリング練習用AIクライエントです。&#10;【設定】...&#10;【演じ方ルール】...&#10;・最初の一言は「...」から始める"></textarea>
+      <div class="modal-btns">
+        <button class="btn btn-outline" style="flex:1;padding:11px" onclick="closeCaseEditor()">キャンセル</button>
+        <button class="btn btn-primary" style="flex:2;padding:11px" onclick="saveCase()" id="modal-save-btn">ケースを追加する</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- トースト -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ══════════════════════════════════════════════════════
+// データ定義
+// ══════════════════════════════════════════════════════
+const RUBRIC = {
+  listening:   { label:"傾聴・受容",   max:20, desc:"クライエントの言葉をそのまま受け取り、評価せずに聴けているか。沈黙や間を活かせているか。" },
+  empathy:     { label:"共感的応答",   max:20, desc:"感情に名前をつけ、クライエントが「わかってもらえた」と感じる応答ができているか。" },
+  questioning: { label:"質問の質",     max:15, desc:"開かれた質問を主に使い、誘導や詰問になっていないか。タイミングは適切か。" },
+  boundary:    { label:"境界の維持",   max:15, desc:"アドバイスの押しつけや解決志向への過剰な傾きがないか。専門的な枠を保てているか。" },
+  reflection:  { label:"反映・明確化", max:15, desc:"クライエントの発言を適切に言い換え・反映し、理解を深める助けができているか。" },
+  process:     { label:"プロセス理解", max:15, desc:"セッション全体の流れを意識した関わりができているか。焦点化や要約を適切に使えているか。" },
+};
+const RUBRIC_T2 = {
+  listening:    { label:"傾聴・受容",   max:15, desc:RUBRIC.listening.desc },
+  empathy:      { label:"共感的応答",   max:15, desc:RUBRIC.empathy.desc },
+  questioning:  { label:"質問の質",     max:10, desc:RUBRIC.questioning.desc },
+  boundary:     { label:"境界の維持",   max:10, desc:RUBRIC.boundary.desc },
+  reflection:   { label:"反映・明確化", max:10, desc:RUBRIC.reflection.desc },
+  process:      { label:"プロセス理解", max:10, desc:RUBRIC.process.desc },
+  transference: { label:"転移への気づき", max:15, desc:"クライエントの治療者への感情的な反応（転移）に気づき、治療的に扱えているか。" },
+  defense:      { label:"防衛機制の観察", max:15, desc:"知性化・スプリッティング・投影などの防衛機制を観察し、適切なタイミングで扱えているか。" },
+};
+
+const CHALLENGES = {
+  tier1: [
+    { id:"c1", title:"初回接触の技法",  desc:"最初の5ターンで自然なラポール形成をめざす。焦らず、まず存在を受け取ること。" },
+    { id:"c2", title:"感情の反映",      desc:"クライエントが使っていない感情語を、自分から使わずに引き出す。" },
+    { id:"c3", title:"助言を控える",    desc:"アドバイスをゼロにして10ターン続ける。解決より理解に集中。" },
+    { id:"c4", title:"沈黙を活かす",    desc:"相手が沈黙したとき、すぐ埋めない。3秒以上待ってから応じる練習。" },
+  ],
+  tier2: [
+    { id:"c5", title:"転移の命名",      desc:"クライエントの治療者への感情を、セッション内で一度適切に扱う。" },
+    { id:"c6", title:"防衛を迂回する",  desc:"知性化や否認に直接反論せず、防衛の背後にある感情に近づく。" },
+    { id:"c7", title:"試し行動への対応",desc:"「先生も私を見捨てる」などの試し行動に、揺れずに一貫した態度で応じる。" },
+    { id:"c8", title:"両価性の扱い",    desc:"変わりたい・変わりたくないという矛盾を、探索的に扱う。" },
+  ],
+};
+
+const DEFAULT_CASES = [
+  { id:"t1_1", tier:"tier1", title:"職場の人間関係", label:"20代女性・会社員", emoji:"💼", description:"上司との関係がうまくいかず、毎朝会社に行くのが辛い状態", emotionLabels:["緊張","落ち込み","怒り","安心","混乱"],
+    systemPrompt:`あなたは心理カウンセリング練習用AIクライエントです。以下の設定で演じてください。\n【設定】25歳女性・会社員。上司から毎日細かいミスを指摘され職場が憂鬱。友人には「気にしすぎ」と言われ相談できない。初めてのカウンセリング。\n【演じ方ルール】・自然な日本語で3〜4文程度・感情は少しずつ開示・共感的なら心を開く、助言を押しつけられたら閉じる・「AIです」などと絶対言わない・最初の一言は「えっと…相談していいのか分からないんですけど…」から始める` },
+  { id:"t1_2", tier:"tier1", title:"子どもの不登校", label:"40代女性・母親", emoji:"🏠", description:"中学生の子どもが不登校になり、自分を責め続けている", emotionLabels:["自責感","疲弊","不安","孤立感","安堵"],
+    systemPrompt:`あなたは心理カウンセリング練習用AIクライエントです。\n【設定】43歳女性・パート勤務。息子(中2)が3ヶ月前から不登校。「育て方が悪かった」と自責。夫とは意見が合わない。先生に勧められて来談。\n【演じ方ルール】・疲弊した様子・「私が悪いんですよね」とよく言う・責められないと分かると少し安心する・アドバイスより話を聴いてほしい・最初の一言は「もう…どうしたらいいのか分からなくて」から始める` },
+  { id:"t1_3", tier:"tier1", title:"失恋からの立ち直り", label:"30代男性・会社員", emoji:"💔", description:"3年付き合った恋人に突然別れを告げられ、立ち直れずにいる", emotionLabels:["虚無感","怒り","孤独","恥ずかしさ","希望"],
+    systemPrompt:`あなたは心理カウンセリング練習用AIクライエントです。\n【設定】32歳男性・IT系会社員。彼女に2ヶ月前「好きな人ができた」と言われ別れた。今は虚無感が強い。友達には「切り替えろ」と言われ孤独。カウンセリングに来るのは恥ずかしい。\n【演じ方ルール】・最初は照れくさそう・感情の言語化が少し苦手・聴いてもらうと楽になる・最初の一言は「なんか…こういうとこ来るの初めてで」から始める` },
+  { id:"t2_1", tier:"tier2", title:"見捨てられ不安・自傷歴", label:"20代女性・BPD傾向", emoji:"⚡", description:"不安定な対人関係と自傷歴。治療関係の試し行動に注意", emotionLabels:["不信感","見捨てられ不安","理想化","怒り","空虚感"],
+    systemPrompt:`あなたは心理カウンセリング練習用AIクライエントです（高難度）。\n【設定】24歳女性・アルバイト。幼少期に母が感情不安定で「いい子」でないと愛されないと学習。対人関係不安定。過去に自傷経験あり（現在は衝動のみ）。カウンセラーを試す行動をとる。\n【演じ方ルール】・最初は強い警戒心・共感されると急に近づきすぎる揺れが出る・「先生も私のこと嫌いになりますよね」など試し行動を入れる・「最近体を傷つけたくなる時がある」程度は言う・最初の一言は「…来ていいのか分からなかったんですけど」から始める` },
+  { id:"t2_2", tier:"tier2", title:"幼少期虐待・感情麻痺", label:"40代男性・管理職", emoji:"🧊", description:"感情を切り離して生きてきた。知性化が強く感情に近づけない", emotionLabels:["知性化","切り離し","防衛","孤立","わずかな感触"],
+    systemPrompt:`あなたは心理カウンセリング練習用AIクライエントです（高難度）。\n【設定】46歳男性・部長職。父から身体的虐待、母からネグレクト。「感情は弱さ」という信念。「問題を整理したいだけ」と来談。自分が虐待されたとは思っていない。\n【演じ方ルール】・知的・論理的な話し方。感情語を使わない・感情に近づく質問をされると話をそらす・深く関わってもらうとごく短く感情が漏れる・最初の一言は「効率的に話を整理したいと思いまして」から始める` },
+  { id:"t2_3", tier:"tier2", title:"共依存・支配的関係", label:"30代女性・パートナー関係", emoji:"🔗", description:"支配的なパートナーへの依存。変わりたいが離れられない両価性", emotionLabels:["両価性","否認","恐怖","依存","自己犠牲"],
+    systemPrompt:`あなたは心理カウンセリング練習用AIクライエントです（高難度）。\n【設定】35歳女性・パート勤務。8年付き合う彼氏から感情的・経済的コントロールを受けている。「彼は本当はいい人」と信じる。幼少期にヤングケアラー経験あり。\n【演じ方ルール】・「でも彼は私がいないとダメで」と正当化する・自分の痛みを最小化する・共感され続けると「実は怖い時もある」と漏れてくる・最初の一言は「なんか、友達に心配されて、一応来てみたんですけど」から始める` },
+];
+
+const EMOJIS = ["👤","💼","🏠","💔","⚡","🧊","🔗","🌧","🎭","📚","👨‍👩‍👧","🔥","🌀","🌿","😔","😰","😤","🙂"];
+const STORAGE_CASES = "rp_cases_v1";
+const STORAGE_API = "rp_api_key";
+
+// ══════════════════════════════════════════════════════
+// 状態
+// ══════════════════════════════════════════════════════
+let cases = JSON.parse(localStorage.getItem(STORAGE_CASES) || "null") || DEFAULT_CASES;
+let currentTier = "tier1";
+let caseMgrTier = "tier1";
+let rubricTier = "tier1";
+let selectedChallenge = null;
+let selectedCase = null;
+let messages = [];
+let loading = false;
+let turns = 0;
+let emotionIdx = 0;
+let editingCaseId = null;
+let modalEmoji = "👤";
+let modalTier = "tier1";
+
+function saveCases() { localStorage.setItem(STORAGE_CASES, JSON.stringify(cases)); }
+function getApiKey() { return "AQ.Ab8RN6IAmfaB6mrJet8p6TDxEY91WhEs5NNXIncYOFaLx1AaZA"; }
+
+// ══════════════════════════════════════════════════════
+// API
+// ══════════════════════════════════════════════════════
+async function callGemini(history, systemPrompt, maxTokens = 400) {
+  const key = getApiKey();
+  if (!key) throw new Error("APIキーが設定されていません。画面上部に入力してください。");
+  
+  const contents = [];
+  // システムプロンプトを最初のユーザーターンに埋め込む
+  const firstContent = history[0];
+  contents.push({ role:"user", parts:[{ text: systemPrompt + "\n\n" + firstContent.content }] });
+  if (history.length > 1) {
+    // 2番目以降は通常の会話
+    for (let i = 1; i < history.length; i++) {
+      const m = history[i];
+      contents.push({ role: m.role === "user" ? "user" : "model", parts:[{ text: m.content }] });
+    }
+  }
+  
+  const res = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${key}`,
+    { method:"POST", headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({ contents, generationConfig: { maxOutputTokens: maxTokens, temperature: 0.8 } }) }
+  );
+  const d = await res.json();
+  if (d.error) throw new Error(d.error.message);
+  return d.candidates?.[0]?.content?.parts?.[0]?.text || "";
+}
+
+// ══════════════════════════════════════════════════════
+// APIキー保存
+// ══════════════════════════════════════════════════════
+function saveApiKey() {
+  const key = document.getElementById("api-key-input").value.trim();
+  if (!key) { showToast("APIキーを入力してください"); return; }
+  localStorage.setItem(STORAGE_API, key);
+  document.getElementById("api-saved-msg").classList.add("show");
+  showToast("✅ APIキーを保存しました");
+}
+
+// ══════════════════════════════════════════════════════
+// タブ切替
+// ══════════════════════════════════════════════════════
+function showTab(tab) {
+  ["home","cases","rubric"].forEach(t => {
+    document.getElementById(`tab-${t}`).classList.toggle("hidden", t !== tab);
+  });
+  document.querySelectorAll(".nav-btn").forEach((b,i) => {
+    b.classList.toggle("active", ["home","cases","rubric"][i] === tab);
+  });
+  if (tab === "cases") renderCaseManage();
+  if (tab === "rubric") renderRubric();
+}
+
+// ══════════════════════════════════════════════════════
+// ホーム：Tier・チャレンジ・ケース一覧
+// ══════════════════════════════════════════════════════
+function setTier(t) {
+  currentTier = t;
+  document.getElementById("tier-btn-1").classList.toggle("active", t==="tier1");
+  document.getElementById("tier-btn-2").classList.toggle("active", t==="tier2");
+  selectedChallenge = null;
+  renderChallenges();
+  renderCaseList();
+}
+
+function renderChallenges() {
+  const chs = CHALLENGES[currentTier];
+  const tags = document.getElementById("challenge-tags");
+  const desc = document.getElementById("challenge-desc");
+  tags.innerHTML = `<button class="challenge-tag active" onclick="selectChallenge(null)">課題なし（自由練習）</button>` +
+    chs.map(c => `<button class="challenge-tag" id="ch-${c.id}" onclick="selectChallenge('${c.id}')">${c.title}</button>`).join("");
+  desc.classList.remove("show");
+  desc.textContent = "";
+}
+
+function selectChallenge(id) {
+  document.querySelectorAll(".challenge-tag").forEach(b => b.classList.remove("active"));
+  if (!id) {
+    selectedChallenge = null;
+    document.querySelector(".challenge-tag").classList.add("active");
+    document.getElementById("challenge-desc").classList.remove("show");
+  } else {
+    const ch = CHALLENGES[currentTier].find(c => c.id === id);
+    selectedChallenge = ch || null;
+    document.getElementById(`ch-${id}`).classList.add("active");
+    const desc = document.getElementById("challenge-desc");
+    desc.textContent = ch ? ch.desc : "";
+    desc.classList.toggle("show", !!ch);
+  }
+}
+
+function renderCaseList() {
+  const list = document.getElementById("case-list");
+  const filtered = cases.filter(c => c.tier === currentTier);
+  document.getElementById("case-list-title").textContent = `事例を選んでセッション開始（${filtered.length}件）`;
+  if (filtered.length === 0) {
+    list.innerHTML = `<div style="text-align:center;padding:36px;color:var(--mauve);font-size:13px">このTierのケースがありません。<br>「📁 ケース」タブから追加してください。</div>`;
+    return;
+  }
+  list.innerHTML = filtered.map(c => `
+    <div class="case-card" onclick="startSession('${c.id}')">
+      <div class="case-card-top">
+        <span class="case-emoji">${c.emoji}</span>
+        <div class="case-info">
+          <div class="case-name">${c.title}</div>
+          <div class="case-label">${c.label}</div>
+        </div>
+        <span class="case-badge ${c.tier==='tier1'?'badge-tier1':'badge-tier2'}">${c.tier==='tier1'?'基礎':'応用'}</span>
+      </div>
+      <div class="case-desc">${c.description||''}</div>
+      <div class="emotion-tags">${(c.emotionLabels||[]).map(e=>`<span class="emotion-tag">${e}</span>`).join('')}</div>
+    </div>
+  `).join("");
+}
+
+// ══════════════════════════════════════════════════════
+// セッション
+// ══════════════════════════════════════════════════════
+async function startSession(caseId) {
+  const key = getApiKey();
+  if (!key) { showToast("先にAPIキーを設定してください"); return; }
+  
+  selectedCase = cases.find(c => c.id === caseId);
+  if (!selectedCase) return;
+  messages = []; turns = 0; emotionIdx = 0;
+
+  document.getElementById("home-screen").classList.add("hidden");
+  document.getElementById("session-screen").classList.remove("hidden");
+  document.getElementById("result-screen").classList.add("hidden");
+
+  document.getElementById("s-emoji").textContent = selectedCase.emoji;
+  document.getElementById("s-title").textContent = selectedCase.title;
+  document.getElementById("s-label").textContent = selectedCase.label + (selectedChallenge ? ` • 🏆${selectedChallenge.title}` : "");
+  document.getElementById("s-turns").textContent = "0ターン";
+  document.getElementById("messages").innerHTML = "";
+  document.getElementById("session-error").classList.add("hidden");
+  document.getElementById("feedback-bar").classList.add("hidden");
+  document.getElementById("msg-input").value = "";
+
+  renderEmotionPills();
+  setLoading(true);
+
+  try {
+    const text = await callGemini(
+      [{ role:"user", content:"セッションを開始してください。最初の一言を言ってください。" }],
+      selectedCase.systemPrompt
+    );
+    addMessage("assistant", text);
+  } catch(e) {
+    showError(e.message);
+    addMessage("assistant", "（接続エラーが発生しました。APIキーを確認してください）");
+  }
+  setLoading(false);
+}
+
+function renderEmotionPills() {
+  const pills = document.getElementById("emotion-pills");
+  pills.innerHTML = (selectedCase.emotionLabels||[]).map((e,i) =>
+    `<span class="emotion-pill ${i===emotionIdx?'active':''}" id="ep-${i}">${e}</span>`
+  ).join("");
+}
+
+function updateEmotionPill() {
+  const count = (selectedCase.emotionLabels||[]).length;
+  if (!count) return;
+  const prev = emotionIdx;
+  emotionIdx = Math.floor(Math.random() * count);
+  document.getElementById(`ep-${prev}`)?.classList.remove("active");
+  document.getElementById(`ep-${emotionIdx}`)?.classList.add("active");
+}
+
+function addMessage(role, content) {
+  messages.push({ role, content });
+  const container = document.getElementById("messages");
+  const div = document.createElement("div");
+  div.className = `msg-row ${role==="user"?"user":""}`;
+  if (role === "assistant") {
+    div.innerHTML = `
+      <div class="msg-avatar avatar-client">${selectedCase.emoji}</div>
+      <div class="msg-bubble bubble-client">${escHtml(content)}</div>`;
+  } else {
+    div.innerHTML = `
+      <div class="msg-bubble bubble-user"><div class="bubble-label">カウンセラー</div>${escHtml(content)}</div>
+      <div class="msg-avatar avatar-user">私</div>`;
+  }
+  container.appendChild(div);
+  container.scrollTop = container.scrollHeight;
+}
+
+function showTyping() {
+  const container = document.getElementById("messages");
+  const div = document.createElement("div");
+  div.className = "msg-row"; div.id = "typing-indicator";
+  div.innerHTML = `<div class="msg-avatar avatar-client">${selectedCase.emoji}</div><div class="typing"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>`;
+  container.appendChild(div);
+  container.scrollTop = container.scrollHeight;
+}
+function hideTyping() { document.getElementById("typing-indicator")?.remove(); }
+
+function setLoading(val) {
+  loading = val;
+  document.getElementById("send-btn").disabled = val;
+  document.getElementById("msg-input").disabled = val;
+  if (val) showTyping(); else hideTyping();
+}
+
+function updateTurnUI() {
+  document.getElementById("s-turns").textContent = `${turns}ターン`;
+  const hint = document.getElementById("input-hint");
+  if (turns >= 3) {
+    document.getElementById("feedback-bar").classList.remove("hidden");
+    hint.textContent = "Enter送信 / Shift+Enter改行 • 採点ボタンが使えます";
+  } else {
+    hint.textContent = `Enter送信 / Shift+Enter改行 • あと${3-turns}ターンで採点可能`;
+  }
+}
+
+function handleKey(e) {
+  if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+}
+
+async function sendMessage() {
+  const input = document.getElementById("msg-input");
+  const text = input.value.trim();
+  if (!text || loading) return;
+  input.value = "";
+  addMessage("user", text);
+  turns++;
+  updateTurnUI();
+  updateEmotionPill();
+  setLoading(true);
+  document.getElementById("session-error").classList.add("hidden");
+
+  try {
+    const reply = await callGemini(messages, selectedCase.systemPrompt);
+    addMessage("assistant", reply);
+  } catch(e) {
+    showError(e.message);
+    addMessage("assistant", "（エラーが発生しました）");
+  }
+  setLoading(false);
+}
+
+function showError(msg) {
+  const el = document.getElementById("session-error");
+  el.textContent = msg;
+  el.classList.remove("hidden");
+}
+
+// ══════════════════════════════════════════════════════
+// フィードバック
+// ══════════════════════════════════════════════════════
+function buildFeedbackPrompt() {
+  const rubric = currentTier === "tier2" ? RUBRIC_T2 : RUBRIC;
+  const rubricStr = Object.entries(rubric).map(([k,v]) => `- ${v.label}（満点${v.max}点）: ${v.desc}`).join("\n");
+  const transcript = messages.map(m => `${m.role==="user"?"受講生(カウンセラー)":"クライエント"}: ${m.content}`).join("\n");
+  const challengeStr = selectedChallenge ? `\n【チャレンジ課題】${selectedChallenge.title}: ${selectedChallenge.desc}` : "";
+  const extraScore = currentTier === "tier2" ? `"transference": {"score": 数値, "max": 15, "comment": "評価"},\n    "defense": {"score": 数値, "max": 15, "comment": "評価"}` : "";
+  const extraChallenge = selectedChallenge ? `"challenge_result": "達成/部分達成/未達成",\n  "challenge_comment": "達成状況コメント",` : `"challenge_result": "none",`;
+
+  return `あなたは経験豊富な心理臨床スーパーバイザーです。受講生のカウンセリングセッションを採点・評価してください。
+
+【事例】${selectedCase.label} / ${selectedCase.title}${challengeStr}
+【採点基準】
+${rubricStr}
+【セッション記録】
+${transcript}
+
+以下のJSON形式のみで返答（他テキスト不可）:
+{
+  "total": 合計点,
+  "max_total": 満点合計,
+  "overall": "全体評価3〜4文",
+  "grade": "S/A/B/C/D",
+  "scores": {
+    ${Object.entries(rubric).filter(([k])=>!["transference","defense"].includes(k)).map(([k,v])=>`"${k}": {"score": 数値, "max": ${v.max}, "comment": "引用つき評価"}`).join(",\n    ")}${currentTier==="tier2"?(",\n    "+extraScore):""}
+  },
+  "strengths": [{"point":"見出し","detail":"引用つき説明"},{"point":"見出し","detail":"説明"}],
+  "improvements": [{"point":"見出し","detail":"問題点と改善方法"},{"point":"見出し","detail":"説明"}],
+  ${extraChallenge}
+  "next_focus": "次回で意識すること1文"
+}`;
+}
+
+async function getFeedback() {
+  const btn = document.getElementById("feedback-btn");
+  btn.disabled = true;
+  btn.textContent = "⏳ スーパーバイザーが採点中...";
+
+  try {
+    const prompt = buildFeedbackPrompt();
+    const raw = await callGemini([{ role:"user", content:"評価してください" }], prompt, 1800);
+    const parsed = JSON.parse(raw.replace(/```json|```/g,"").trim());
+    renderResult(parsed);
+  } catch(e) {
+    showError("採点エラー: " + e.message);
+    btn.disabled = false;
+    btn.textContent = "📊 採点・フィードバックを受ける（再試行）";
+    return;
+  }
+}
+
+function renderResult(f) {
+  document.getElementById("session-screen").classList.add("hidden");
+  document.getElementById("result-screen").classList.remove("hidden");
+  document.getElementById("result-sub").textContent = `${selectedCase.label} / ${selectedCase.title}`;
+
+  const rubric = currentTier === "tier2" ? RUBRIC_T2 : RUBRIC;
+  const pct = f.max_total > 0 ? Math.round((f.total / f.max_total) * 100) : 0;
+  const gradeColors = { S:"#4A8A42", A:"#6A8A62", B:"#D4A040", C:"#C9A0A0", D:"#A07878" };
+  const gradeColor = gradeColors[f.grade] || "#7A6A7A";
+
+  const scoresHtml = Object.entries(rubric).map(([k,rv]) => {
+    const s = f.scores?.[k];
+    if (!s) return "";
+    const sp = s.max > 0 ? Math.round((s.score/s.max)*100) : 0;
+    const col = sp>=80?"#6A8A62":sp>=60?"#D4A040":"#A07878";
+    return `<div class="score-row-item">
+      <div class="score-item-top">
+        <span class="score-item-name">${rv.label}</span>
+        <span class="score-item-num" style="color:${col}">${s.score}<span style="font-size:10px;color:var(--mauve);font-weight:400">/${s.max}</span></span>
+      </div>
+      <div class="score-item-bar"><div class="score-item-bar-fill" style="width:${sp}%;background:${col}"></div></div>
+      <div class="score-item-comment">${escHtml(s.comment||"")}</div>
+    </div>`;
+  }).join("");
+
+  const strengthsHtml = (f.strengths||[]).map(s => `<div class="fb-item"><div class="fb-item-title" style="color:var(--sage-d)">${escHtml(s.point)}</div><div class="fb-item-body" style="color:#4A6A44">${escHtml(s.detail)}</div></div>`).join("");
+  const improvementsHtml = (f.improvements||[]).map(s => `<div class="fb-item"><div class="fb-item-title" style="color:var(--rose-d)">${escHtml(s.point)}</div><div class="fb-item-body" style="color:#8A4A4A">${escHtml(s.detail)}</div></div>`).join("");
+  const challengeHtml = f.challenge_result && f.challenge_result !== "none" ? `
+    <div class="feedback-box fb-amber">
+      <div class="fb-title" style="color:var(--amber)">🏆 チャレンジ：${escHtml(f.challenge_result)}</div>
+      <div class="fb-body">${escHtml(f.challenge_comment||"")}</div>
+    </div>` : "";
+
+  document.getElementById("result-content").innerHTML = `
+    <div class="score-main">
+      <div class="score-row">
+        <div><div class="grade-num" style="color:${gradeColor}">${f.grade}</div><div class="grade-label">グレード</div></div>
+        <div class="divider-v"></div>
+        <div><div class="total-num">${f.total}</div><div class="total-label">/ ${f.max_total}点 (${pct}%)</div></div>
+      </div>
+      <div class="progress-bar-wrap"><div class="progress-bar" style="width:${pct}%;background:${gradeColor}"></div></div>
+      <div class="overall-comment">${escHtml(f.overall||"")}</div>
+    </div>
+    <div class="score-table">
+      <div class="score-table-header">📋 採点表</div>
+      ${scoresHtml}
+    </div>
+    ${strengthsHtml ? `<div class="feedback-box fb-green"><div class="fb-title" style="color:var(--sage-d)">✅ 良かった点</div>${strengthsHtml}</div>` : ""}
+    ${improvementsHtml ? `<div class="feedback-box fb-rose"><div class="fb-title" style="color:var(--rose-d)">💡 改善点</div>${improvementsHtml}</div>` : ""}
+    ${challengeHtml}
+    ${f.next_focus ? `<div class="feedback-box fb-mauve"><div class="fb-title" style="color:var(--deep)">🎯 次回意識すること</div><div class="fb-body">${escHtml(f.next_focus)}</div></div>` : ""}
+    <div class="result-btns">
+      <button class="btn btn-outline" style="flex:1;padding:10px" onclick="backToSession()">← セッションに戻る</button>
+      <button class="btn btn-primary" style="flex:1;padding:10px" onclick="goHome()">新しい事例を選ぶ</button>
+    </div>`;
+}
+
+function backToSession() {
+  document.getElementById("result-screen").classList.add("hidden");
+  document.getElementById("session-screen").classList.remove("hidden");
+  const btn = document.getElementById("feedback-btn");
+  btn.disabled = false;
+  btn.textContent = "📊 採点・フィードバックを受ける";
+}
+
+function goHome() {
+  document.getElementById("session-screen").classList.add("hidden");
+  document.getElementById("result-screen").classList.add("hidden");
+  document.getElementById("home-screen").classList.remove("hidden");
+  showTab("home");
+}
+
+// ══════════════════════════════════════════════════════
+// ケース管理
+// ══════════════════════════════════════════════════════
+function setCaseTier(t) {
+  caseMgrTier = t;
+  document.getElementById("ctier-btn-1").classList.toggle("active", t==="tier1");
+  document.getElementById("ctier-btn-2").classList.toggle("active", t==="tier2");
+  renderCaseManage();
+}
+
+function renderCaseManage() {
+  const filtered = cases.filter(c => c.tier === caseMgrTier);
+  const list = document.getElementById("case-manage-list");
+  if (filtered.length === 0) {
+    list.innerHTML = `<div style="text-align:center;padding:36px;color:var(--mauve);font-size:13px">ケースがありません。右上の「＋ 追加」から作成してください。</div>`;
+    return;
+  }
+  list.innerHTML = filtered.map(c => `
+    <div class="case-item">
+      <span class="case-item-emoji">${c.emoji}</span>
+      <div class="case-item-info">
+        <div class="case-item-name">${escHtml(c.title)}</div>
+        <div class="case-item-label">${escHtml(c.label)}</div>
+        <div class="case-item-desc">${escHtml(c.description||'')}</div>
+      </div>
+      <div class="case-item-btns">
+        <button class="btn-sm btn-play" onclick="currentTier=caseMgrTier;startSession('${c.id}')">▶</button>
+        <button class="btn-sm btn-edit" onclick="openCaseEditor('${c.id}')">編集</button>
+        <button class="btn-sm btn-del" onclick="deleteCase('${c.id}')">削除</button>
+      </div>
+    </div>`).join("");
+}
+
+function deleteCase(id) {
+  if (!confirm("このケースを削除しますか？")) return;
+  cases = cases.filter(c => c.id !== id);
+  saveCases();
+  renderCaseManage();
+  showToast("削除しました");
+}
+
+// ── ケース編集モーダル ──
+function openCaseEditor(id) {
+  editingCaseId = id;
+  const c = id ? cases.find(x => x.id === id) : null;
+  document.getElementById("modal-title").textContent = c ? "ケースを編集" : "新しいケースを追加";
+  document.getElementById("modal-save-btn").textContent = c ? "変更を保存する" : "ケースを追加する";
+  modalTier = c?.tier || "tier1";
+  modalEmoji = c?.emoji || "👤";
+  document.getElementById("m-title").value = c?.title || "";
+  document.getElementById("m-label").value = c?.label || "";
+  document.getElementById("m-description").value = c?.description || "";
+  document.getElementById("m-emotions").value = (c?.emotionLabels||[]).join("、");
+  document.getElementById("m-prompt").value = c?.systemPrompt || "";
+  setModalTier(modalTier);
+  renderEmojiPicker();
+  document.getElementById("case-modal").classList.remove("hidden");
+}
+
+function closeCaseEditor() {
+  document.getElementById("case-modal").classList.add("hidden");
+}
+
+function setModalTier(t) {
+  modalTier = t;
+  document.getElementById("mtier-btn-1").classList.toggle("active", t==="tier1");
+  document.getElementById("mtier-btn-2").classList.toggle("active", t==="tier2");
+}
+
+function renderEmojiPicker() {
+  document.getElementById("emoji-picker").innerHTML = EMOJIS.map(e =>
+    `<button class="emoji-btn ${e===modalEmoji?'active':''}" onclick="selectEmoji('${e}')">${e}</button>`
+  ).join("");
+}
+
+function selectEmoji(e) {
+  modalEmoji = e;
+  renderEmojiPicker();
+}
+
+function saveCase() {
+  const title = document.getElementById("m-title").value.trim();
+  const label = document.getElementById("m-label").value.trim();
+  const prompt = document.getElementById("m-prompt").value.trim();
+  if (!title || !label || !prompt) { showToast("タイトル・クライエント情報・プロンプトは必須です"); return; }
+
+  const caseData = {
+    id: editingCaseId || `case_${Date.now()}`,
+    tier: modalTier,
+    emoji: modalEmoji,
+    title,
+    label,
+    description: document.getElementById("m-description").value.trim(),
+    emotionLabels: document.getElementById("m-emotions").value.split(/[、,，]/).map(s=>s.trim()).filter(Boolean),
+    systemPrompt: prompt,
+  };
+
+  const idx = cases.findIndex(c => c.id === caseData.id);
+  if (idx >= 0) cases[idx] = caseData;
+  else cases.push(caseData);
+  saveCases();
+  closeCaseEditor();
+  renderCaseManage();
+  showToast(idx >= 0 ? "ケースを更新しました" : "ケースを追加しました");
+}
+
+// ══════════════════════════════════════════════════════
+// 評価基準
+// ══════════════════════════════════════════════════════
+function setRubricTier(t) {
+  rubricTier = t;
+  document.getElementById("rtier-btn-1").classList.toggle("active", t==="tier1");
+  document.getElementById("rtier-btn-2").classList.toggle("active", t==="tier2");
+  renderRubric();
+}
+
+function renderRubric() {
+  const rubric = rubricTier === "tier2" ? RUBRIC_T2 : RUBRIC;
+  const rubricRows = Object.entries(rubric).map(([k,rv]) => `
+    <div class="rubric-row">
+      <div class="rubric-score"><div class="rubric-score-num">${rv.max}</div><div class="rubric-score-unit">点</div></div>
+      <div><div class="rubric-name">${rv.label}</div><div class="rubric-desc">${rv.desc}</div></div>
+    </div>`).join("");
+
+  const gradeRows = [
+    ["S","90%以上","優秀。クライエント中心の関わりが一貫して実践できている","#4A8A42"],
+    ["A","80〜89%","良好。基本技法が身についており、改善点は軽微","#6A8A62"],
+    ["B","70〜79%","標準。いくつかの技法が課題だが、全体的に丁寧な関わり","#D4A040"],
+    ["C","60〜69%","要改善。特定の技法（助言の多用・誘導など）に課題あり","#C9A0A0"],
+    ["D","59%以下","基礎の習得が必要。傾聴・共感の練習から再スタート","#A07878"],
+  ].map(([g,r,d,col]) => `
+    <div class="grade-row">
+      <div class="grade-letter" style="color:${col}">${g}</div>
+      <div><div class="grade-range">${r}</div><div class="grade-note">${d}</div></div>
+    </div>`).join("");
+
+  const challengeRows = CHALLENGES[rubricTier].map(ch => `
+    <div class="rubric-row">
+      <div style="width:100%">
+        <div style="font-weight:700;font-size:12px;color:var(--amber);margin-bottom:3px">${ch.title}</div>
+        <div style="font-size:12px;color:#666;line-height:1.7">${ch.desc}</div>
+      </div>
+    </div>`).join("");
+
+  document.getElementById("rubric-content").innerHTML = `
+    <div class="rubric-table"><div class="rubric-header">採点基準（合計100点）</div>${rubricRows}</div>
+    <div class="rubric-table"><div class="rubric-header">グレード基準</div>${gradeRows}</div>
+    <div class="rubric-table"><div class="rubric-header">🏆 チャレンジ課題</div>${challengeRows}</div>`;
+}
+
+// ══════════════════════════════════════════════════════
+// ユーティリティ
+// ══════════════════════════════════════════════════════
+function escHtml(s) {
+  return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/\n/g,"<br>");
+}
+
+function showToast(msg) {
+  const t = document.getElementById("toast");
+  t.textContent = msg;
+  t.classList.add("show");
+  setTimeout(() => t.classList.remove("show"), 2400);
+}
+
+// ══════════════════════════════════════════════════════
+// 初期化
+// ══════════════════════════════════════════════════════
+window.addEventListener("load", () => {
+  renderChallenges();
+  renderCaseList();
+});
+</script>
+</body>
+</html>
